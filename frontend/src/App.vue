@@ -1,16 +1,66 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import { ref } from 'vue'
+import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
 
-// Mock user data - bisa diganti dengan data dari API
+// User data dari localStorage/store
 const currentUser = ref({
-  name: 'John Doe',
+  name: '',
   avatar: '👤'
+})
+
+const router = useRouter()
+
+// Function untuk load user data dari localStorage
+const loadUserData = () => {
+  const userData = localStorage.getItem('user')
+  if (userData) {
+    try {
+      const user = JSON.parse(userData)
+      currentUser.value = {
+        name: user.name || user.username || 'User',
+        avatar: user.avatar || '👤'
+      }
+    } catch (error) {
+      console.error('Error parsing user data:', error)
+    }
+  }
+}
+
+// Function untuk handle logout
+const handleLogout = () => {
+  // Hapus data user dari storage/store
+  localStorage.removeItem('user')
+  localStorage.removeItem('token')
+  
+  // Reset currentUser
+  currentUser.value = {
+    name: '',
+    avatar: '👤'
+  }
+  
+  // Redirect ke halaman login
+  router.push('/login')
+}
+
+// Load user data saat komponen dimount
+onMounted(() => {
+  loadUserData()
+})
+
+// Get current route
+const route = useRoute()
+
+// Computed property untuk menentukan apakah navbar harus ditampilkan
+const showNavbar = computed(() => {
+  // Daftar halaman yang tidak menampilkan navbar
+  const hiddenNavbarRoutes = ['/login', '/register', '/forgot-password']
+  return !hiddenNavbarRoutes.includes(route.path)
 })
 </script>
 
 <template>
-  <header class="modern-header">
+  <!-- Header hanya tampil jika bukan halaman login -->
+  <header v-if="showNavbar" class="modern-header">
     <div class="header-content">
       <!-- Logo Section -->
       <div class="logo-section">
@@ -37,18 +87,25 @@ const currentUser = ref({
       <div class="user-section">
         <div class="user-info">
           <span class="user-name">{{ currentUser.name }}</span>
-          <span class="user-role">Project Manager</span>
         </div>
         <div class="user-avatar">
           <div class="avatar-circle">
             {{ currentUser.avatar }}
           </div>
         </div>
+        <button @click="handleLogout" class="logout-btn" title="Logout">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16,17 21,12 16,7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </button>
       </div>
     </div>
   </header>
 
-  <main class="main-content">
+  <!-- Main content dengan class dinamis -->
+  <main :class="showNavbar ? 'main-content' : 'main-content-full'">
     <RouterView />
   </main>
 </template>
