@@ -3,16 +3,35 @@ const { ApolloServer } = require('@apollo/server');
 const { expressMiddleware } = require('@apollo/server/express4');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const typeDefs = require('./graphql/schema/todoSchema');
-const resolvers = require('./graphql/resolvers/todoResolvers');
+require('dotenv').config();
+
+const { mergeTypeDefs } = require('@graphql-tools/merge');
+const { mergeResolvers } = require('@graphql-tools/merge');
+
+// Import schema
+const todoTypeDefs = require('./graphql/schema/todoSchema');
+const authTypeDefs = require('./graphql/schema/authSchema');
+
+// Import resolver
+const todoResolvers = require('./graphql/resolvers/todoResolvers');
+const authResolvers = require('./graphql/resolvers/authResolvers');
+
+// Gabungkan schema dan resolvers
+const typeDefs = mergeTypeDefs([todoTypeDefs, authTypeDefs]);
+const resolvers = mergeResolvers([todoResolvers, authResolvers]);
 
 const app = express();
 const server = new ApolloServer({ typeDefs, resolvers });
 
 (async () => {
   await server.start();
-  app.use(cors(), bodyParser.json(), expressMiddleware(server));
-  app.listen(4000, () => {
-    console.log('🚀 Server berjalan di http://localhost:4000/graphql');
+
+  app.use(cors());
+  app.use(bodyParser.json());
+  app.use(expressMiddleware(server));
+
+  const PORT = process.env.PORT || 4000;
+  app.listen(PORT, () => {
+    console.log(`🚀 Server berjalan di http://localhost:${PORT}/graphql`);
   });
 })();
