@@ -314,15 +314,15 @@ const handleRegister = async () => {
 
     if (result?.data?.register) {
       // Opsi 1: Langsung login dan redirect
-      // const { token, user } = result.data.register
-      // localStorage.setItem('token', token)
-      // localStorage.setItem('user', JSON.stringify(user))
-      // router.push('/dashboard')
+      const { token, user } = result.data.register
+      localStorage.setItem('token', token)
+      localStorage.setItem('user', JSON.stringify(user))
+      router.push('/dashboard')
 
       // Opsi 2: Tampilkan pesan sukses dan pindah ke login
-      successMessage.value = 'Registrasi berhasil! Silakan login.'
-      clearForms()
-      isRegister.value = false
+    //   successMessage.value = 'Registrasi berhasil! Silakan login.'
+    //   clearForms()
+    //   isRegister.value = false
     }
   } catch (error: any) {
     console.error('Register error:', error)

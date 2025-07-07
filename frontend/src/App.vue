@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 
-// User data dari localStorage/store
+// User data dari localStorage
 const currentUser = ref({
   name: '',
   avatar: '👤'
 })
 
 const router = useRouter()
+const route = useRoute()
 
 // Function untuk load user data dari localStorage
 const loadUserData = () => {
+  console.log("Memuat ulang data pengguna...")
   const userData = localStorage.getItem('user')
   if (userData) {
     try {
@@ -21,7 +23,7 @@ const loadUserData = () => {
         avatar: user.avatar || '👤'
       }
     } catch (error) {
-      console.error('Error parsing user data:', error)
+      console.error('Gagal parsing data pengguna:', error)
     }
   }
 }
@@ -31,13 +33,13 @@ const handleLogout = () => {
   // Hapus data user dari storage/store
   localStorage.removeItem('user')
   localStorage.removeItem('token')
-  
+
   // Reset currentUser
   currentUser.value = {
     name: '',
     avatar: '👤'
   }
-  
+
   // Redirect ke halaman login
   router.push('/login')
 }
@@ -47,13 +49,18 @@ onMounted(() => {
   loadUserData()
 })
 
-// Get current route
-const route = useRoute()
+// Watch perubahan route, jika berubah maka cek ulang data user
+watch(
+  () => route.path,
+  () => {
+    loadUserData()
+  }
+)
 
 // Computed property untuk menentukan apakah navbar harus ditampilkan
 const showNavbar = computed(() => {
   // Daftar halaman yang tidak menampilkan navbar
-  const hiddenNavbarRoutes = ['/login', '/register', '/forgot-password']
+  const hiddenNavbarRoutes = ['/', '/login', '/register', '/forgot-password']
   return !hiddenNavbarRoutes.includes(route.path)
 })
 </script>
